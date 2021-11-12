@@ -1,0 +1,35 @@
+
+# 检查配置文件变动的时间间隔
+refresh_rate: 30 seconds
+
+# build 附着器（配置输出目的地）
+appenders:
+  # 附着器
+  console:
+    kind: console
+    target: stdout
+    encoder:
+      pattern: "[{d:<35}][{T}][{M}][{L}][{l}] {m}{n}"
+
+  # 附着器
+  dev_appender:
+    kind: file
+    path: "log/device.log"
+    encoder:
+      pattern: "[{d:<35}][{T}][{M}][{L}][{l}] {m}{n}"
+
+# 根日志器root
+root:
+  level: debug
+  appenders:
+    - console
+    - dev_appender
+
+loggers:
+  # 日志器 app
+  app:
+    level: debug
+    appenders:
+      - console
+      - dev_appender
+    additive: true
