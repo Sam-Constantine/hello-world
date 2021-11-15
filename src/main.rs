@@ -3,11 +3,10 @@ use std::time::{Duration, Instant};
 use actix::{Actor, ActorContext, AsyncContext, StreamHandler};
 use actix_files as fs;
 use actix_form_data::{Field, Form, Value};
-use actix_web::{App, get, HttpResponse, HttpServer, middleware, post, Responder, web};
-use actix_web::{Error, HttpRequest};
 use actix_web::web::{post, resource};
+use actix_web::{get, middleware, post, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{Error, HttpRequest};
 use actix_web_actors::ws;
-use futures::StreamExt;
 
 use module::user;
 
@@ -29,8 +28,7 @@ async fn main() -> std::io::Result<()> {
         // static files
         // .service(fs::Files::new("/", "static/").index_file("ws.html"))
     })
-        .bind("127.0.0.1:8080")?
-        .run()
-        .await
+    .bind("127.0.0.1:8088")?
+    .run()
+    .await
 }
-
