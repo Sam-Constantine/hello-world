@@ -14,22 +14,22 @@ pub mod api {
 
     #[get("/")]
     pub async fn index() -> impl Responder {
+
         let ret = format!(
-r#"
+            r#"
     <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>默认首页</title>
+        <title>Server Server Server</title>
     </head>
     <body>
-        <h1>运行于： {:?}</h1>
-        <p>Hi from Rust</p>
+        <h1>Hi from Server</h1>
+        <p>运行于： {}</p>
     </body>
     </html>
-"#,
-            std::env::current_exe().unwrap()
-        );
+"#, std::env::current_exe().unwrap().as_path().to_str().unwrap());
+
         HttpResponse::Ok().body(ret)
     }
 

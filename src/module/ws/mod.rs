@@ -14,21 +14,21 @@ const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 /// do websocket handshake and start `MyWebSocket` actor
 pub async fn ws_index(r: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
     info!("收到请求： \n{:?}", r);
-    let res = ws::start(MyWebSocket::new(), &r, stream);
+    let res = ws::start(WsConn::new(), &r, stream);
     info!("{:?}", res);
     res
 }
 
 /// websocket connection is long running connection, it easier
 /// to handle with an actor
-struct MyWebSocket {
+struct WsConn {
     /// Client must send ping at least once per 10 seconds (CLIENT_TIMEOUT),
     /// otherwise we drop connection.
     hb: Instant,
 }
 
-impl Actor for MyWebSocket {
-    //type Context = ws::WebsocketContext<Self>;
+impl Actor for WsConn {
+
     type Context = ws::WebsocketContext<Self>;
 
     /// Method is called on actor start. We start the heartbeat process here.
@@ -38,7 +38,7 @@ impl Actor for MyWebSocket {
 }
 
 /// Handler for `ws::Message`
-impl StreamHandler<Result<Message, ws::ProtocolError>> for MyWebSocket {
+impl StreamHandler<Result<Message, ws::ProtocolError>> for WsConn {
     fn handle(&mut self, msg: Result<Message, ws::ProtocolError>, ctx: &mut Self::Context) {
         // process websocket messages
         debug!("WS: {:?}", msg);
@@ -61,7 +61,7 @@ impl StreamHandler<Result<Message, ws::ProtocolError>> for MyWebSocket {
     }
 }
 
-impl MyWebSocket {
+impl WsConn {
     fn new() -> Self {
         Self { hb: Instant::now() }
     }
