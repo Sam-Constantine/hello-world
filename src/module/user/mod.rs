@@ -1,20 +1,16 @@
 pub mod api {
-    use std::fs;
-    use std::future::Future;
-    use std::io::Write;
 
-    use actix_form_data::Value;
-    use actix_multipart::{Field, MultipartError};
-    use actix_web::{Error, error, get, HttpResponse, post, Responder, web};
-    use actix_web::dev::Service;
+    use actix_web::{get, post, HttpResponse, Responder};
+    use log::debug;
 
     pub async fn manual_hello() -> impl Responder {
-        HttpResponse::Ok().body("Hey there!")
+        let ret = HttpResponse::Ok().body("Hey there! 拆尼斯~");
+        debug!("{:?}", &ret);
+        ret
     }
 
     #[get("/")]
     pub async fn index() -> impl Responder {
-
         let ret = format!(
             r#"
     <!DOCTYPE html>
@@ -28,7 +24,9 @@ pub mod api {
         <p>运行于： {}</p>
     </body>
     </html>
-"#, std::env::current_exe().unwrap().as_path().to_str().unwrap());
+"#,
+            std::env::current_exe().unwrap().as_path().to_str().unwrap()
+        );
 
         HttpResponse::Ok().body(ret)
     }

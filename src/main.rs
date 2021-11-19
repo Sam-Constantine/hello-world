@@ -23,7 +23,7 @@ async fn main() -> std::io::Result<()> {
             .service(user::api::index)
             .service(user::api::echo)
             .route("/hey", web::get().to(user::api::manual_hello))
-            // // websocket route
+            // websocket route
             .service(web::resource("/ws/chat").route(web::get().to(module::ws::ws_index)))
             // // static files
             // .service(fs::Files::new("/", "static/").index_file("ws.html"))
