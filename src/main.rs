@@ -1,16 +1,9 @@
-use std::time::{Duration, Instant};
-
-use actix::{Actor, ActorContext, AsyncContext, StreamHandler};
 use actix_files as fs;
-use actix_form_data::{Field, Form, Value};
-use actix_web::{App, get, HttpResponse, HttpServer, middleware, post, Responder, web};
-use actix_web::{Error, HttpRequest};
-use actix_web::web::{post, resource};
-use actix_web_actors::ws;
-
-use module::user;
+use actix_web::{middleware, web, App, HttpServer};
 
 mod module;
+use module::controller;
+use module::controller::ws;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -20,15 +13,16 @@ async fn main() -> std::io::Result<()> {
         App::new()
             // enable logger
             .wrap(middleware::Logger::default())
-            .service(user::api::index)
-            .service(user::api::echo)
-            .route("/hey", web::get().to(user::api::manual_hello))
+            .service(controller::api::index)
+            .service(controller::api::echo)
+            .route("/hey", web::get().to(controller::api::manual_hello))
             // websocket route
-            .service(web::resource("/ws/chat").route(web::get().to(module::ws::ws_index)))
-            // // static files
-            // .service(fs::Files::new("/", "static/").index_file("ws.html"))
+            //.service(web::resource("/ws/chat").route(web::get().to(ws::ws_index)))
+            .service(ws::ws_index)
+            // static files
+            .service(fs::Files::new("/", "static/").index_file("ws.html"))
     })
-        .bind("127.0.0.1:8088")?
-        .run()
-        .await
+    .bind("127.0.0.1:8088")?
+    .run()
+    .await
 }

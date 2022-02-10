@@ -1,7 +1,7 @@
 use std::time::{Duration, Instant};
 
 use actix::{Actor, ActorContext, AsyncContext, StreamHandler};
-use actix_web::{Error, HttpRequest, HttpResponse, web};
+use actix_web::{Error, get, HttpRequest, HttpResponse, web};
 use actix_web_actors::ws;
 use actix_web_actors::ws::Message;
 use log::{debug, info};
@@ -12,10 +12,11 @@ const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// do websocket handshake and start `MyWebSocket` actor
+#[get("/ws/chat")]
 pub async fn ws_index(r: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
-    info!("收到请求： \n{:?}", r);
+    info!("Receive=> \n{:?}", r);
     let res = ws::start(WsConn::new(), &r, stream);
-    info!("{:?}", res);
+    info!("Result=> \n{:?}", res);
     res
 }
 
@@ -25,15 +26,24 @@ struct WsConn {
     /// Client must send ping at least once per 10 seconds (CLIENT_TIMEOUT),
     /// otherwise we drop connection.
     hb: Instant,
+
 }
 
 impl Actor for WsConn {
-
     type Context = ws::WebsocketContext<Self>;
 
     /// Method is called on actor start. We start the heartbeat process here.
     fn started(&mut self, ctx: &mut Self::Context) {
         self.hb(ctx);
+        debug!("Websocket heartbeat process started.");
+
+        self.report_light_sources(ctx);
+        debug!("Websocket report light sources started.");
+    }
+
+    /// 断开连接
+    fn stopped(&mut self, _: &mut Self::Context) {
+        debug!("Disconnects websocket.");
     }
 }
 
@@ -41,7 +51,7 @@ impl Actor for WsConn {
 impl StreamHandler<Result<Message, ws::ProtocolError>> for WsConn {
     fn handle(&mut self, msg: Result<Message, ws::ProtocolError>, ctx: &mut Self::Context) {
         // process websocket messages
-        debug!("WS: {:?}", msg);
+        //debug!("WS: {:?}", msg);
         match msg {
             Ok(Message::Ping(msg)) => {
                 self.hb = Instant::now();
@@ -50,7 +60,7 @@ impl StreamHandler<Result<Message, ws::ProtocolError>> for WsConn {
             Ok(Message::Pong(_)) => {
                 self.hb = Instant::now();
             }
-            Ok(Message::Text(text)) => ctx.text(text),
+            Ok(Message::Text(text)) => ctx.text("Repeat: ".to_string() + &text),
             Ok(Message::Binary(bin)) => ctx.binary(bin),
             Ok(Message::Close(reason)) => {
                 ctx.close(reason);
@@ -70,6 +80,7 @@ impl WsConn {
     ///
     /// also this method checks heartbeats from client
     fn hb(&self, ctx: &mut <Self as Actor>::Context) {
+        
         ctx.run_interval(HEARTBEAT_INTERVAL, |act, ctx| {
             // check client heartbeats
             if Instant::now().duration_since(act.hb) > CLIENT_TIMEOUT {
@@ -82,10 +93,21 @@ impl WsConn {
                 // don't try to send a ping
                 return;
             }
-
             ctx.ping(b"");
+        });
+
+
+    }
+
+    /// 返回光源数据
+    fn report_light_sources(&self, ctx: &mut <Self as Actor>::Context) {
+        let mut cnt = 0;
+        ctx.run_interval(Duration::from_millis(50), move |_act, ctx| {
+
+            let msg = cnt.to_string();
+            //debug!("light_sources {}", msg);
+            ctx.text(msg);
+            cnt += 1;
         });
     }
 }
-
-

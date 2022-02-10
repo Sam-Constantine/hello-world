@@ -1,5 +1,4 @@
-pub mod user;
-pub mod ws;
+pub mod controller;
 
 pub mod handler {
     use actix_web::dev::HttpServiceFactory;
