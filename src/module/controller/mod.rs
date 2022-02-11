@@ -1,4 +1,5 @@
 pub mod api;
-pub mod ws;
+pub mod ws_conn;
+pub mod trait_cmd;
 
 

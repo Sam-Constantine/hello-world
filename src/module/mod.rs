@@ -1,4 +1,5 @@
 pub mod controller;
+pub mod protocols;
 
 pub mod handler {
     use actix_web::dev::HttpServiceFactory;

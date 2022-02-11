@@ -1,28 +1,21 @@
+use std::any::Any;
 use std::time::{Duration, Instant};
 
-use actix::{Actor, ActorContext, AsyncContext, StreamHandler};
+use actix::{Actor, ActorContext, Addr, AsyncContext, Handler, StreamHandler};
 use actix_web::{Error, get, HttpRequest, HttpResponse, web};
 use actix_web_actors::ws;
 use actix_web_actors::ws::Message;
-use log::{debug, info};
+use log::debug;
+use crate::module::protocols::ws_message::{Say, SayHello};
 
 /// How often heartbeat pings are sent
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
 /// How long before lack of client response causes a timeout
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
-/// do websocket handshake and start `MyWebSocket` actor
-#[get("/ws/chat")]
-pub async fn ws_index(r: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
-    info!("Receive=> \n{:?}", r);
-    let res = ws::start(WsConn::new(), &r, stream);
-    info!("Result=> \n{:?}", res);
-    res
-}
-
 /// websocket connection is long running connection, it easier
 /// to handle with an actor
-struct WsConn {
+pub struct WsConn {
     /// Client must send ping at least once per 10 seconds (CLIENT_TIMEOUT),
     /// otherwise we drop connection.
     hb: Instant,
@@ -72,7 +65,7 @@ impl StreamHandler<Result<Message, ws::ProtocolError>> for WsConn {
 }
 
 impl WsConn {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self { hb: Instant::now() }
     }
 
@@ -111,3 +104,21 @@ impl WsConn {
         });
     }
 }
+
+
+impl Handler<SayHello> for WsConn{
+    type Result = ();
+
+    fn handle(&mut self, msg: SayHello, ctx: &mut Self::Context) -> Self::Result {
+        ctx.text("hello!");
+    }
+}
+
+impl Handler<Say> for WsConn {
+    type Result = ();
+
+    fn handle(&mut self, msg: Say, ctx: &mut Self::Context) -> Self::Result {
+        ctx.text(msg.data);
+    }
+}
+

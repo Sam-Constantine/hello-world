@@ -948,6 +948,7 @@ dependencies = [
  "awc",
  "env_logger",
  "futures",
+ "lazy_static",
  "log",
  "log4rs",
  "pretty-bytes",

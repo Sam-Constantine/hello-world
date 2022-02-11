@@ -1,9 +1,9 @@
 use actix_files as fs;
-use actix_web::{middleware, web, App, HttpServer};
+use actix_web::{App, HttpServer, middleware, web};
 
 mod module;
 use module::controller;
-use module::controller::ws;
+use module::controller::{api, ws_conn};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -18,7 +18,7 @@ async fn main() -> std::io::Result<()> {
             .route("/hey", web::get().to(controller::api::manual_hello))
             // websocket route
             //.service(web::resource("/ws/chat").route(web::get().to(ws::ws_index)))
-            .service(ws::ws_index)
+            .service(api::ws_index)
             // static files
             .service(fs::Files::new("/", "static/").index_file("ws.html"))
     })

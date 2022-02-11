@@ -1,10 +1,11 @@
 
 
-use actix_web::{get, post, HttpResponse, Responder};
-use log::debug;
+use actix_web::{Error, get, HttpRequest, HttpResponse, post, Responder, web};
+use log::{debug, info};
+use actix_web_actors::ws;
+use crate::ws_conn::WsConn;
 
 pub async fn manual_hello() -> impl Responder {
-
     let ret = HttpResponse::Ok().body("Hey there! " );
     debug!("{:?}", &ret);
     ret
@@ -35,4 +36,13 @@ r#"
 #[post("/echo")]
 pub async fn echo(req_body: String) -> impl Responder {
     HttpResponse::Ok().body(req_body)
+}
+
+/// do websocket handshake and start `MyWebSocket` actor
+#[get("/ws/chat")]
+pub async fn ws_index(r: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
+    info!("Receive=> \n{:?}", r);
+    let res = ws::start(WsConn::new(), &r, stream);
+    info!("Result=> \n{:?}", res);
+    res
 }
